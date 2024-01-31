@@ -78,7 +78,6 @@
 
     if (message !== '') {
       appendMessage(username, message);
-      // 메시지를 서버에 보냅니다.
       socket.emit('message', { username, message });
       messageInput.value = '';
       messageInput.focus();
