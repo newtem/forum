@@ -3,20 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
   <title>Chat Room</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    #chat-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    #chat-box {
+      height: 400px;
+      overflow-y: scroll;
+      padding: 20px;
+    }
+
+    #input-container {
+      padding: 10px;
+      background-color: #eee;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #nickname-input,
+    #message-input {
+      flex-grow: 1;
+      padding: 8px;
+      margin-right: 10px;
+    }
+
+    #send-button {
+      padding: 8px 15px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
 <div id="chat-container">
   <div id="chat-box"></div>
   <div id="input-container">
-    <input type="text" id="nickname-input" placeholder="enter ur username">
-    <input type="text" id="message-input" placeholder="enter message">
-    <button id="send-button" onclick="sendMessage()">전송</button>
+    <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요...">
+    <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+    <button id="send-button" onclick="sendMessage()" disabled>전송</button>
   </div>
 </div>
 
-<script src="script.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+  var username;
+  var chatBox = document.getElementById('chat-box');
+  var socket = io();
+
+  function setNickname() {
+    username = document.getElementById('nickname-input').value.trim();
+    if (username !== '') {
+      document.getElementById('nickname-input').setAttribute('disabled', 'true');
+      document.getElementById('message-input').removeAttribute('disabled');
+      document.getElementById('send-button').removeAttribute('disabled');
+    }
+  }
+
+  function sendMessage() {
+    var messageInput = document.getElementById('message-input');
+    var message = messageInput.value.trim();
+
+    if (message !== '') {
+      appendMessage(username, message);
+      // 메시지를 서버에 보냅니다.
+      socket.emit('message', { username, message });
+      messageInput.value = '';
+      messageInput.focus();
+    }
+  }
+
+  function appendMessage(sender, message) {
+    var messageElement = document.createElement('div');
+    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    chatBox.appendChild(messageElement);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  socket.on('message', (data) => {
+    appendMessage(data.username, data.message);
+  });
+
+  document.getElementById('nickname-input').addEventListener('blur', setNickname);
+</script>
+
 </body>
 </html>
